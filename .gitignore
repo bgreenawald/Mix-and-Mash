@@ -1,0 +1,6 @@
+env/
+.vscode/
+raw_data/
+processed_data/
+*.zip
+*.pyc
