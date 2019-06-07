@@ -143,6 +143,6 @@ def generate(start_word, project, memory=False, memory_mechanism="uniform"):
 
 
 if __name__ == "__main__":
-    print(generate("I"))
-    print(generate("I am", memory=True))
+    print(generate("I", "biblical_trump"))
+    print(generate("I am", "biblical_trump", memory=True))
 
