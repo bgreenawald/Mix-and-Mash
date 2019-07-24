@@ -14,5 +14,6 @@ processed_data/
 *.zip
 
 # Model files
+**/model/
 *.pkl
 *.npz
