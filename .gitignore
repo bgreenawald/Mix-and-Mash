@@ -1,6 +1,18 @@
-env/
+# Ignore coding settings
 .vscode/
+
+# Python ignores
+env/
+**/.ipynb_checkpoints/
+*.pyc
+
+# Ignore data directories
 raw_data/
 processed_data/
+
+# Packaged files
 *.zip
-*.pyc
+
+# Model files
+*.pkl
+*.npz
