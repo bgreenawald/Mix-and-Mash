@@ -1,10 +1,6 @@
-import math
 import os
-from os.path import join
 import pickle
-import random
 import re
-import sys
 
 import numpy as np
 import pandas as pd
@@ -15,7 +11,7 @@ DATA_DIR = "raw_data"
 WRITE_DIR = "processed_data"
 MODEL_DIR = "model"
 
-with open(join(DATA_DIR, "bible.txt"), "r") as file:
+with open(os.path.join(DATA_DIR, "bible.txt"), "r") as file:
     bible_text = file.read()
 
 # Regular expression to consolidate verses into single lines
@@ -23,12 +19,12 @@ single_line = re.compile("\n(?!\n)")
 bible_text = re.sub(pattern=single_line, string=bible_text, repl=" ")
 
 # Read in the trump tweets
-tweets = pd.read_csv(join(DATA_DIR, "trumpTweets.csv"))
+tweets = pd.read_csv(os.path.join(DATA_DIR, "trumpTweets.csv"))
 tweets_text = tweets["text"]
 
 # Append tweets to Bible
 bible_and_tweets = bible_text + "\n".join(tweets_text)
-with open(join(WRITE_DIR, "bible_and_tweets.txt"), "w+", encoding="utf-8") as file:
+with open(os.path.join(WRITE_DIR, "bible_and_tweets.txt"), "w+", encoding="utf-8") as file:
     file.write(bible_and_tweets)
 
 # Use regular expression to edit data
@@ -58,7 +54,7 @@ for line in bible_and_tweets.split("!endline!\n"):
 
 text_full = " !endline!\n".join(sentences)
 
-with open(join(WRITE_DIR, "text_processed.txt"), "w+") as file:
+with open(os.path.join(WRITE_DIR, "text_processed.txt"), "w+") as file:
     file.write(text_full)
 
 print("Text length: " + str(len(text_full)))
@@ -83,15 +79,15 @@ for index, word in enumerate(vocab):
     id_to_vocab[index] = word
 
 # Save the objects
-with open(join(MODEL_DIR, "vocab_to_id.pkl"), "wb") as f:
+with open(os.path.join(MODEL_DIR, "vocab_to_id.pkl"), "wb") as f:
     pickle.dump(vocab_to_id, f, pickle.HIGHEST_PROTOCOL)
     f.close()
 
-with open(join(MODEL_DIR, "id_to_vocab.pkl"), "wb") as f:
+with open(os.path.join(MODEL_DIR, "id_to_vocab.pkl"), "wb") as f:
     pickle.dump(id_to_vocab, f, pickle.HIGHEST_PROTOCOL)
     f.close()
 
-with open(join(MODEL_DIR, "vocab.pkl"), "wb") as f:
+with open(os.path.join(MODEL_DIR, "vocab.pkl"), "wb") as f:
     pickle.dump(vocab, f, pickle.HIGHEST_PROTOCOL)
     f.close()
 
@@ -114,4 +110,4 @@ mat = tf.tocoo()
 mat_norm = normalize(mat, norm="l1", axis=1)
 
 # Save the normalized matrix
-sp.save_npz(join(MODEL_DIR, "norm_matrix.npz"), mat_norm)
+sp.save_npz(os.path.join(MODEL_DIR, "norm_matrix.npz"), mat_norm)

@@ -1,5 +1,5 @@
 import math
-from os.path import join
+import os
 import pickle
 import random
 import re
@@ -25,17 +25,17 @@ def load_resources(project):
 
     # Read back in the matrix and dictionary objects
     global mat_norm
-    mat_norm = sp.load_npz(join(PROJECT_DIR, "norm_matrix.npz"))
+    mat_norm = sp.load_npz(os.path.join(PROJECT_DIR, "norm_matrix.npz"))
 
-    with open(join(PROJECT_DIR, "vocab_to_id.pkl"), "rb") as f:
+    with open(os.path.join(PROJECT_DIR, "vocab_to_id.pkl"), "rb") as f:
         global vocab_to_id
         vocab_to_id = pickle.load(f)
         f.close()
-    with open(join(PROJECT_DIR, "id_to_vocab.pkl"), "rb") as f:
+    with open(os.path.join(PROJECT_DIR, "id_to_vocab.pkl"), "rb") as f:
         global id_to_vocab
         id_to_vocab = pickle.load(f)
         f.close()
-    with open(join(PROJECT_DIR, "vocab.pkl"), "rb") as f:
+    with open(os.path.join(PROJECT_DIR, "vocab.pkl"), "rb") as f:
         global vocab
         vocab = pickle.load(f)
         f.close()
@@ -145,4 +145,3 @@ def generate(start_word, project, memory=False, memory_mechanism="uniform"):
 if __name__ == "__main__":
     print(generate("I", "biblical_trump"))
     print(generate("I am", "biblical_trump", memory=True))
-

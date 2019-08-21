@@ -1,53 +1,72 @@
+import json
+
 from generate import generate
 
+
 def lambda_handler(event, context):
-    if "message" in event:
-        message = event["message"]
-    else:
-        return "No input message recieved"
 
-    if "project" in event:
-        project = event["project"]
-    else:
-        return "No project specified."
+    print("Got event {}".format(event))
 
-    memory = event["memory"] if "memory" in event else False
-    mechanism = event["mechanism"] if "mechanism" in event else "uniform"
+    try:
+        body = json.loads(event["body"])
 
-    return generate(message, project, memory, mechanism)
+        if "message" in body:
+            message = body["message"]
+        else:
+            return "No input message recieved"
+
+        if "project" in body:
+            project = body["project"]
+        else:
+            return "No project specified."
+
+        memory = body["memory"] if "memory" in body else False
+        mechanism = body["mechanism"] if "mechanism" in body else "uniform"
+
+        return {
+            "statusCode": 200,
+            "body": json.dumps(generate(message, project, memory, mechanism)),
+        }
+    except (KeyError, TypeError) as e:
+        print("Got error " + str(e))
+        return {
+            "statusCode": 400,
+            "body": json.dumps(str(e)),
+        }
 
 
-if __name__=="__main__":
+if __name__ == "__main__":
+
     # Standard message test case
-    print(lambda_handler({
+    print(lambda_handler({"body": json.dumps({
         "message": "I",
         "project": "biblical_trump",
-    }, None))
+    })}, None))
 
     # No message test case
-    print(lambda_handler({
+    print(lambda_handler({"body": json.dumps({
         "msg": "I",
         "project": "biblical_trump",
-    }, None))
+    })}, None))
 
     # Message with memory, but not enough words
-    print(lambda_handler({
+    print(lambda_handler({"body": json.dumps({
         "message": "I",
         "project": "biblical_trump",
         "memory": True
-    }, None))
+    })}, None))
 
     # Message with memory, but not enough words
-    print(lambda_handler({
+    print(lambda_handler({"body": json.dumps({
         "message": "I am",
         "project": "biblical_trump",
         "memory": True
-    }, None))
+    })}, None))
 
     # Message with memory and mechanism
-    print(lambda_handler({
+    print(lambda_handler({"body": json.dumps({
         "message": "I am",
         "project": "biblical_trump",
         "memory": True,
         "mechanism": "random"
-    }, None))
+    })}, None))
