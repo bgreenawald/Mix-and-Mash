@@ -20,13 +20,21 @@ def lambda_handler(event, context):
         else:
             return "No project specified."
 
-        memory = body["memory"] if "memory" in body else False
-        mechanism = body["mechanism"] if "mechanism" in body else "uniform"
+        memory = body.get("memory", False)
+        mechanism = body.get("mechanism", "uniform")
 
-        return {
-            "statusCode": 200,
-            "body": json.dumps(generate(message, project, memory, mechanism)),
-        }
+        try:
+            message = generate(message, project, memory, mechanism)
+            return {
+                "statusCode": 200,
+                "body": json.dumps(message),
+            }
+        except (KeyError, ValueError) as e:
+            return {
+                "statusCode": 400,
+                "body": json.dumps(str(e))
+            }
+
     except (KeyError, TypeError) as e:
         print("Got error " + str(e))
         return {
