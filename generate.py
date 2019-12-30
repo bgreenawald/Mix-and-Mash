@@ -75,27 +75,26 @@ def memory_generate(start_words, memory_mechanism="random"):
     if memory_mechanism not in ["random", "uniform", "decaying"]:
         raise KeyError("Invalid memory mechanism")
 
-    # Specify the choice of weigts
-    weight_choice = "random"
-    gamma = 0.5
-    if weight_choice == "uniform":
-        weights = np.zeros(len(start_words)) + 1
-        weights = weights / len(start_words)
-    elif weight_choice == "decaying":
-        weights = [0] * len(start_words)
-        for i in range(len(start_words)):
+    # Number of steps to look back (maximum 3)
+    lookback = min(len(start_words), 3)
+
+    # Specify the choice of weights
+    if memory_mechanism == "uniform":
+        weights = np.zeros(lookback) + 1
+        weights = weights / lookback
+    elif memory_mechanism == "decaying":
+        gamma = 0.5
+        weights = [0] * lookback
+        for i in range(lookback):
             weights[i] = math.pow(gamma, i)
 
         weights.reverse()
         weights = np.array(weights) / sum(weights)
     else:
-        weights = np.array(random.sample(range(0, 100), len(start_words)))
+        weights = np.array(random.sample(range(0, 100), lookback))
         weights = weights / sum(weights)
 
     current_word = start_words[-1]
-
-    # Number of steps to look back (maximum 3)
-    lookback = min(len(start_words), 3)
 
     ret_length = 0
     while current_word != "!endline!" and ret_length < MAX_RETURN_LENGTH:
@@ -104,7 +103,7 @@ def memory_generate(start_words, memory_mechanism="random"):
         lookback_words = start_words[-(lookback):]
 
         # Start with the furthest back word and use it's distribution as the start
-        row_ind = vocab_to_id[start_words[-len(start_words)]]
+        row_ind = vocab_to_id[start_words[-lookback]]
         prob_dist = weights[0] * np.array(mat_norm.getrow(row_ind).todense())[0]
 
         # For all the rest of the words, add the weighted probability distribution to the result
@@ -117,7 +116,11 @@ def memory_generate(start_words, memory_mechanism="random"):
         # Make sure we don't have repeats
         current_word = start_words[-1]
         while current_word in lookback_words:
-            next_ind = np.random.choice(range(len(vocab)), p=prob_dist)
+            try:
+                next_ind = np.random.choice(range(len(vocab)), p=prob_dist)
+            except ValueError:
+                # If the probabilities don't sum to 1, choose randomly
+                next_ind = np.random.choice(range(len(vocab)))
             current_word = id_to_vocab[next_ind]
 
         # Append the predicted word the results
@@ -161,5 +164,5 @@ def generate(start_word, project, memory=False, memory_mechanism="uniform"):
 if __name__ == "__main__":
     print(generate("", "biblical_trump"))
     print(generate("I", "biblical_trump"))
-    print(generate("I am", "biblical_trump", memory=True))
-    print(generate("I am", "biblical_trump"))
+    print(generate("I am the best", "biblical_trump", memory=True))
+    print(generate("I am the best", "biblical_trump"))
