@@ -13,12 +13,18 @@ def lambda_handler(event, context):
         if "message" in body:
             message = body["message"]
         else:
-            return "No input message recieved"
+            return {
+                "statusCode": 400,
+                "body": json.dumps("No input message recieved"),
+            }
 
         if "project" in body:
             project = body["project"]
         else:
-            return "No project specified."
+            return {
+                "statusCode": 400,
+                "body": json.dumps("No project specified."),
+            }
 
         memory = body.get("memory", False)
         mechanism = body.get("mechanism", "uniform")
@@ -57,6 +63,12 @@ if __name__ == "__main__":
         "project": "biblical_trump",
     })}, None))
 
+    # No word test case
+    print(lambda_handler({"body": json.dumps({
+        "message": "",
+        "project": "biblical_trump",
+    })}, None))
+
     # Message with memory, but not enough words
     print(lambda_handler({"body": json.dumps({
         "message": "I",
@@ -64,7 +76,7 @@ if __name__ == "__main__":
         "memory": True
     })}, None))
 
-    # Message with memory, but not enough words
+    # Message with memory
     print(lambda_handler({"body": json.dumps({
         "message": "I am",
         "project": "biblical_trump",
@@ -77,4 +89,11 @@ if __name__ == "__main__":
         "project": "biblical_trump",
         "memory": True,
         "mechanism": "random"
+    })}, None))
+
+    # Message with no memory and multiple words
+    print(lambda_handler({"body": json.dumps({
+        "message": "I am",
+        "project": "biblical_trump",
+        "memory": False,
     })}, None))

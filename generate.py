@@ -18,6 +18,7 @@ id_to_vocab = None
 vocab = None
 mat_norm = None
 
+MAX_RETURN_LENGTH = 100
 
 def load_resources(project):
     """Given the project name, load global resources."""
@@ -41,19 +42,22 @@ def load_resources(project):
         f.close()
 
 
-def normal_generate(start_word):
+def normal_generate(start_words):
+    sentence = start_words.split(" ")
+    start_word = sentence[-1]
+
     if start_word not in vocab:
         raise KeyError("{} not found in vocabulary.".format(start_word))
 
-    sentence = [start_word]
-    while start_word != "!endline!":
+    ret_length = 0
+    while start_word != "!endline!" and ret_length < MAX_RETURN_LENGTH:
+        ret_length += 1
         row_ind = vocab_to_id[start_word]
         prob_dist = np.array(mat_norm.getrow(row_ind).todense())[0]
         try:
             next_ind = np.random.choice(range(len(vocab)), p=prob_dist)
         except ValueError:
-            pass
-            # TODO: Figure out what to do here.
+            next_ind = np.random.choice(range(len(vocab)))
         start_word = id_to_vocab[next_ind]
         sentence.append(start_word)
     return " ".join(sentence[:-1]).capitalize()
@@ -66,7 +70,7 @@ def memory_generate(start_words, memory_mechanism="random"):
     # Make sure all words are valid
     for word in start_words:
         if word not in vocab:
-            raise KeyError("{} not found in vocabulary.".format(word))
+            raise KeyError(f"{word} not found in vocabulary.")
 
     if memory_mechanism not in ["random", "uniform", "decaying"]:
         raise KeyError("Invalid memory mechanism")
@@ -90,10 +94,12 @@ def memory_generate(start_words, memory_mechanism="random"):
 
     current_word = start_words[-1]
 
-    # Number of steps to look back
-    lookback = len(start_words)
+    # Number of steps to look back (maximum 3)
+    lookback = min(len(start_words), 3)
 
-    while current_word != "!endline!":
+    ret_length = 0
+    while current_word != "!endline!" and ret_length < MAX_RETURN_LENGTH:
+        ret_length += 1
         # Get the last "n" words, where "n" is the lookback amount
         lookback_words = start_words[-(lookback):]
 
@@ -124,7 +130,7 @@ def generate(start_word, project, memory=False, memory_mechanism="uniform"):
     """Generate a word phrase with the given inputs.
 
     Args:
-        start_word (srt): The starting phrase for the generator.
+        start_word (str): The starting phrase for the generator.
         project (str): The name of the project.
         memory (bool, optional): Whether to use memory. Defaults to False.
         memory_mechanism (str, optional): What memory mechanism to use.
@@ -147,18 +153,13 @@ def generate(start_word, project, memory=False, memory_mechanism="uniform"):
     start_word = re.sub(pattern=remove_non_alphabetic, string=start_word, repl="")
 
     if not memory:
-        if len(start_word.split(" ")) != 1:
-            raise ValueError("If not using memory, only a single word can be entered.")
-        else:
-            return normal_generate(start_word)
+        return normal_generate(start_word)
     else:
-        if len(start_word.split(" ")) <= 1:
-            raise ValueError("If using memory, more than one word must be entered.")
-        else:
-            return memory_generate(start_word, memory_mechanism)
+        return memory_generate(start_word, memory_mechanism)
 
 
 if __name__ == "__main__":
     print(generate("", "biblical_trump"))
     print(generate("I", "biblical_trump"))
     print(generate("I am", "biblical_trump", memory=True))
+    print(generate("I am", "biblical_trump"))
